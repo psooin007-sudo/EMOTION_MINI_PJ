@@ -194,7 +194,7 @@ def start_webcam_process():
     """web.py를 별도 프로세스로 실행"""
     try:
         python_exe = sys.executable
-        web_py_path = os.path.join(os.path.dirname(__file__), 'web_no_key_rere.py')
+        web_py_path = os.path.join(os.path.dirname(__file__), 'web_nowebcam.py')
         
         process = subprocess.Popen([python_exe, web_py_path])
         return process
