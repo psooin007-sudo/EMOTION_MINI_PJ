@@ -14,19 +14,11 @@ import atexit
 
 # web_no_key_rere.py
 # 외부 라이브러리 자동 설치
-try:
-    import plotly.graph_objects as go
-    import plotly.express as px
-    import pandas as pd
-    from plotly.subplots import make_subplots
-except ImportError:
-    import subprocess
-    import sys
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "plotly", "pandas"])
-    import plotly.graph_objects as go
-    import plotly.express as px
-    import pandas as pd
-    from plotly.subplots import make_subplots
+
+import plotly.graph_objects as go
+import plotly.express as px
+import pandas as pd
+from plotly.subplots import make_subplots
 
 from emotion_model import analyze_emotion_from_image, detect_face_and_analyze, get_latest_emotion, reset_emotion_state
 import emotion_list
