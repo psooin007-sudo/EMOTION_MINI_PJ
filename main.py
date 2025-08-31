@@ -318,7 +318,7 @@ def create_enhanced_timeline_chart(history_data, minutes=30):
             ))
     
     fig.update_layout(
-        title=f"감정 변화 추이 (최근 {minutes}분)",
+        title=f"감정 변화 추이)",
         xaxis_title="시간",
         yaxis_title="신뢰도 (%)",
         height=500,
@@ -371,7 +371,7 @@ def create_emotion_distribution_chart(history_data, minutes=30):
     )])
     
     fig.update_layout(
-        title=f"감정 분포 (최근 {minutes}분)",
+        title=f"감정 분포)",
         height=400,
         margin=dict(l=20, r=20, t=60, b=20)
     )
@@ -606,7 +606,7 @@ def show_analytics_page():
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        st.subheader(f"📈 감정 변화 추이 ({selected_time})")
+        st.subheader(f"📈 감정 변화 추이")
         timeline_chart = create_enhanced_timeline_chart(all_history, minutes)
         if timeline_chart:
             st.plotly_chart(timeline_chart, use_container_width=True)
@@ -614,15 +614,14 @@ def show_analytics_page():
             st.info("해당 시간 범위에 데이터가 없습니다.")
     
     with col2:
-        st.subheader(f"🥧 감정 분포 ({selected_time})")
+        st.subheader(f"🥧 감정 분포")
         distribution_chart = create_emotion_distribution_chart(all_history, minutes)
         if distribution_chart:
             st.plotly_chart(distribution_chart, use_container_width=True)
         else:
             st.info("해당 시간 범위에 데이터가 없습니다.")
-    
     # 통계 테이블
-    st.subheader(f"📊 감정 통계 ({selected_time})")
+    st.subheader(f"📊 감정 통계")
     stats_table = create_emotion_stats_table(all_history, minutes)
     if stats_table is not None:
         st.dataframe(stats_table, use_container_width=True)
@@ -630,7 +629,8 @@ def show_analytics_page():
         st.info("해당 시간 범위에 데이터가 없습니다.")
         
     # 원시 데이터 표시 (선택사항)
-    if st.expander("📋 원시 데이터 보기"):
+    show_raw_data = st.checkbox("📋 원시 데이터 보기")
+    if show_raw_data:
         cutoff_time = datetime.now() - timedelta(minutes=minutes)
         recent_data = [h for h in all_history if h['timestamp'] > cutoff_time]
         
