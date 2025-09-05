@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⛵ 분노의 암초 부수기</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --ocean-light: #0ea5e9;
+            --ocean-mid: #0891b2;
+            --ocean-dark: #0c4a6e;
+            --danger: #dc2626;
+            --danger-light: #f87171;
+            --success: #059669;
+            --success-light: #34d399;
+            --warning: #f59e0b;
+            --warning-light: #fbbf24;
+            --accent: #8b5cf6;
+            --accent-light: #a78bfa;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: radial-gradient(circle, rgba(59,130,246,0.6), transparent);
+            border-radius: 50%;
+            animation: floatUp 15s linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899, #f59e0b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(59,130,246,0.3);
+        }
+        
+        .header p {
+            font-size: 1.3rem;
+            color: rgba(255,255,255,0.8);
+            font-weight: 600;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 30px;
+            align-items: start;
+        }
+
+        @media (max-width: 1200px) {
+            .game-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        .panel {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 
+                0 20px 40px rgba(0,0,0,0.2),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .panel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+
+        .panel h3 {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: var(--warning-light);
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            border-left: 4px solid var(--ocean-light);
+        }
+
+        .stat-value {
+            font-weight: 800;
+            font-size: 1.2rem;
+        }
+
+        .combo-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            animation: comboPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes comboPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(139,92,246,0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(139,92,246,0.6); }
+        }
+
+        .arena-container {
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(30px);
+            border-radius: 25px;
+            padding: 30px;
+            border: 2px solid rgba(255,255,255,0.1);
+            box-shadow: 
+                0 30px 60px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        .arena {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            border-radius: 20px;
+            background: 
+                radial-gradient(ellipse at 30% 20%, rgba(59,130,246,0.2) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(139,92,246,0.15) 0%, transparent 50%),
+                linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(30,41,59,0.7) 100%);
+            overflow: hidden;
+            border: 2px solid rgba(59,130,246,0.3);
+            box-shadow: 
+                0 20px 40px rgba(0,0,0,0.5),
+                0 0 40px rgba(59,130,246,0.2),
+                inset 0 2px 0 rgba(255,255,255,0.1);
+        }
+
+        .ocean-bg {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: linear-gradient(0deg, 
+                rgba(8,145,178,0.4) 0%, 
+                rgba(14,165,233,0.3) 50%, 
+                rgba(56,189,248,0.1) 100%
+            );
+            animation: oceanWave 4s ease-in-out infinite;
+        }
+
+        @keyframes oceanWave {
+            0%, 100% { transform: translateY(0px) scaleY(1); }
+            50% { transform: translateY(-10px) scaleY(1.1); }
+        }
+
+        .rock {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 120px;
+            filter: 
+                drop-shadow(0 10px 25px rgba(0,0,0,0.7))
+                drop-shadow(0 0 20px rgba(139,69,19,0.4));
+            animation: rockFloat 3s ease-in-out infinite;
+            user-select: none;
+        }
+        
+        @keyframes rockFloat {
+            0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+            50% { transform: translate(-50%, -55%) scale(1.05) rotate(2deg); }
+        }
+
+        .reef-info {
+            position: relative; /* 자식 요소의 absolute 위치 기준 */
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .reef-display {
+            background: linear-gradient(135deg, var(--danger) 0%, #ef4444 50%, var(--danger-light) 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            border: 2px solid rgba(255,255,255,0.2);
+            box-shadow: 
+                0 10px 30px rgba(220,38,38,0.4),
+                0 0 30px rgba(239,68,68,0.3);
+            animation: reefThrob 2s ease-in-out infinite;
+        }
+
+        @keyframes reefThrob {
+            0%, 100% { transform: scale(1); box-shadow: 0 10px 30px rgba(220,38,38,0.4); }
+            50% { transform: scale(1.02); box-shadow: 0 15px 40px rgba(220,38,38,0.6); }
+        }
+
+        .hp-container {
+            margin: 20px 0;
+        }
+
+        .hp-bar {
+            width: 100%;
+            height: 25px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.2);
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        .hp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, 
+                #22c55e 0%, 
+                #84cc16 30%, 
+                #f59e0b 70%, 
+                #ef4444 100%
+            );
+            background-size: 200% 100%;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: hpFlow 3s ease-in-out infinite;
+            box-shadow: 
+                0 0 20px rgba(34,197,94,0.6),
+                inset 0 2px 0 rgba(255,255,255,0.3);
+        }
+
+        @keyframes hpFlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hp-text {
+            text-align: center;
+            font-weight: 600;
+            margin-top: 8px;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .attack-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .attack-btn {
+            position: relative;
+            padding: 18px 25px;
+            border: none;
+            border-radius: 20px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .attack-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .attack-btn:hover::before {
+            left: 100%;
+        }
+
+        .attack-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+        }
+
+        .attack-btn:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .btn-strong {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24, #fcd34d);
+            color: #000;
+            box-shadow: 0 8px 25px rgba(245,158,11,0.4);
+        }
+
+        .btn-strong:hover {
+            box-shadow: 0 12px 35px rgba(245,158,11,0.6);
+        }
+
+        .btn-wave {
+            background: linear-gradient(135deg, #0ea5e9, #38bdf8, #7dd3fc);
+            color: #000;
+            box-shadow: 0 8px 25px rgba(14,165,233,0.4);
+        }
+
+        .btn-wave:hover {
+            box-shadow: 0 12px 35px rgba(14,165,233,0.6);
+        }
+
+        .btn-lightning {
+            background: linear-gradient(135deg, #fde047, #facc15, #eab308);
+            color: #000;
+            box-shadow: 0 8px 25px rgba(253,224,71,0.4);
+        }
+
+        .btn-lightning:hover {
+            box-shadow: 0 12px 35px rgba(253,224,71,0.6);
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .control-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, var(--success), var(--success-light));
+            color: white;
+            font-size: 1.1rem;
+            box-shadow: 0 6px 20px rgba(5,150,105,0.4);
+        }
+
+        .btn-end {
+            background: linear-gradient(135deg, #6b7280, #9ca3af);
+            color: white;
+            box-shadow: 0 6px 20px rgba(107,114,128,0.4);
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .guide {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .guide-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .guide-item:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .guide-icon {
+            font-size: 1.5rem;
+            width: 40px;
+            text-align: center;
+        }
+
+        .effect-shockwave {
+            position: absolute;
+            left: 50%; top: 50%;
+            width: 60px; height: 60px;
+            border: 6px solid rgba(255,255,255,0.9);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: shockExpand 0.8s ease-out forwards;
+        }
+
+        @keyframes shockExpand {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+            70% { opacity: 0.8; transform: translate(-50%, -50%) scale(6); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(8); }
+        }
+
+        .damage-text {
+            position: absolute;
+            left: 50%; top: 35%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            font-weight: 900;
+            pointer-events: none;
+            animation: damageFloat 1s ease-out forwards;
+        }
+
+        @keyframes damageFloat {
+            0% { 
+                transform: translate(-50%, -20%) scale(0.5); 
+                opacity: 0; 
+            }
+            20% { 
+                opacity: 1; 
+                transform: translate(-50%, -30%) scale(1.2); 
+            }
+            100% { 
+                transform: translate(-50%, -100%) scale(0.8); 
+                opacity: 0; 
+            }
+        }
+
+        .start-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            text-align: center;
+        }
+
+        .start-screen h2 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #38bdf8, #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .achievement {
+            background: linear-gradient(135deg, var(--success), var(--success-light));
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin: 10px 0;
+            text-align: center;
+            font-weight: 700;
+            box-shadow: 0 8px 25px rgba(5,150,105,0.4);
+        }
+
+        .game-over {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            margin-top: 30px;
+            box-shadow: 0 15px 40px rgba(139,92,246,0.4);
+        }
+        
+        /* [수정된 부분] 게임 내 중앙 메시지 스타일 */
+        .arena-message {
+            position: absolute;
+            bottom: 120px; /* 공격 버튼들 바로 위에 위치하도록 조정 */
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+            pointer-events: none; /* 메시지가 버튼 클릭을 방해하지 않도록 함 */
+            z-index: 100;
+            white-space: nowrap;
+        }
+
+        .arena-message.show {
+            opacity: 1;
+        }
+
+        .arena-message.success {
+            background: linear-gradient(135deg, var(--success), var(--success-light));
+            color: white;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .arena-message.info {
+            background: linear-gradient(135deg, var(--ocean-light), #38bdf8);
+            color: white;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>⛵ 분노의 암초 부수기</h1>
+            <p>💪 강타 🌊 파도 ⚡ 번개로 감정의 암초를 시원하게 부숴 보세요!</p>
+        </div>
+
+        <div class="game-grid">
+            <div class="panel">
+                <h3>📊 항해 현황</h3>
+                <div class="stat-item">
+                    <span>🏆 레벨</span>
+                    <span class="stat-value" id="level">1</span>
+                </div>
+                <div class="stat-item">
+                    <span>⭐ 점수</span>
+                    <span class="stat-value" id="score">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>💥 격파</span>
+                    <span class="stat-value" id="destroyed">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>🔥 콤보</span>
+                    <div>
+                        <span class="stat-value" id="combo">0</span>
+                        <span class="combo-badge" id="combo-multiplier">x1.0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="arena-container">
+                <div id="game-area">
+                    <div class="start-screen" id="start-screen">
+                        <h2>🌊 감정의 항해를 시작하세요!</h2>
+                        <p>바다에 떠다니는 분노의 암초들을 부수고<br>마음의 평온을 되찾아보세요.</p>
+                        <div class="control-buttons">
+                            <button class="control-btn btn-start" onclick="startGame()">⛵ 항해 시작하기</button>
+                        </div>
+                    </div>
+
+                    <div class="reef-info" id="reef-info" style="display: none;">
+                        <div class="reef-display" id="reef-display">
+                             <span id="reef-type">분노</span> (강도: <span id="reef-intensity">1</span>)
+                        </div>
+                        
+                        <div class="hp-container">
+                            <div class="hp-bar">
+                                <div class="hp-fill" id="hp-fill" style="width: 100%;"></div>
+                            </div>
+                            <div class="hp-text" id="hp-text">HP 10 / 10</div>
+                        </div>
+
+                        <div class="arena" id="arena">
+                            <div class="ocean-bg"></div>
+                            <div class="rock" id="rock">⛰️</div>
+                        </div>
+
+                        <div id="arena-message" class="arena-message"></div>
+
+                        <div class="attack-buttons">
+                            <button class="attack-btn btn-strong" onclick="attack('strong')" title="안정적인 2 데미지 + 충격파">
+                                💪 강타
+                            </button>
+                            <button class="attack-btn btn-wave" onclick="attack('wave')" title="1-2 데미지 + 파도 스플래시">
+                                🌊 파도
+                            </button>
+                            <button class="attack-btn btn-lightning" onclick="attack('lightning')" title="2-4 데미지 + 전기 충격">
+                                ⚡ 번개
+                            </button>
+                        </div>
+
+                        <div class="control-buttons">
+                            <button class="control-btn btn-end" onclick="endGame()">🏁 항해 종료</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>🎯 전투 가이드</h3>
+                <div class="guide">
+                    <div class="guide-item">
+                        <div class="guide-icon">💪</div>
+                        <div>
+                            <strong>강타</strong><br>
+                            <small>안정적 2데미지 + 충격파</small>
+                        </div>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-icon">🌊</div>
+                        <div>
+                            <strong>파도</strong><br>
+                            <small>1~2데미지 + 스플래시</small>
+                        </div>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-icon">⚡</div>
+                        <div>
+                            <strong>번개</strong><br>
+                            <small>2~4데미지 + 전기충격</small>
+                        </div>
+                    </div>
+                    <div class="guide-item" style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 15px; padding-top: 15px;">
+                        <div class="guide-icon">💡</div>
+                        <div>
+                            <strong>콤보 팁</strong><br>
+                            <small>1.4초 내 연타시 점수 증가!</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="achievements"></div>
+        <div id="game-over" style="display: none;"></div>
+    </div>
+
+    <script>
+        // 게임 상태
+        const gameState = {
+            active: false,
+            level: 1,
+            score: 0,
+            destroyedReefs: 0,
+            combo: 0,
+            lastHitTime: null,
+            currentReef: null,
+            angerTypes: ['분노', '짜증', '화남', '억울함', '답답함', '좌절감', '스트레스', '불만']
+        };
+
+        // 파티클 생성
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // 암초 생성
+        function generateReef() {
+            const angerType = gameState.angerTypes[Math.floor(Math.random() * gameState.angerTypes.length)];
+            const intensity = Math.floor(Math.random() * 5) + 1;
+            const baseHp = 3 + intensity * 2 + Math.max(0, gameState.level - 1);
+            
+            return {
+                type: angerType,
+                intensity: intensity,
+                hp: baseHp,
+                maxHp: baseHp
+            };
+        }
+
+        // 게임 시작
+        function startGame() {
+            gameState.active = true;
+            gameState.level = 1;
+            gameState.score = 0;
+            gameState.destroyedReefs = 0;
+            gameState.combo = 0;
+            gameState.lastHitTime = null;
+            gameState.currentReef = generateReef();
+
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('reef-info').style.display = 'block';
+            
+            updateUI();
+        }
+
+        // 게임 종료
+        function endGame() {
+            gameState.active = false;
+            gameState.currentReef = null;
+            
+            document.getElementById('start-screen').style.display = 'flex';
+            document.getElementById('reef-info').style.display = 'none';
+            
+            showAchievements();
+        }
+
+        // 공격
+        function attack(type) {
+            if (!gameState.active || !gameState.currentReef) return;
+
+            let damage = 0;
+            let effectClass = '';
+
+            switch (type) {
+                case 'strong':
+                    damage = 2;
+                    effectClass = 'strong';
+                    break;
+                case 'wave':
+                    damage = Math.random() < 0.5 ? 2 : 1;
+                    effectClass = 'wave';
+                    break;
+                case 'lightning':
+                    damage = Math.floor(Math.random() * 3) + 2; // 2-4
+                    effectClass = 'lightning';
+                    break;
+            }
+
+            const now = Date.now();
+            if (gameState.lastHitTime && (now - gameState.lastHitTime) <= 1400) {
+                gameState.combo++;
+            } else {
+                gameState.combo = 1;
+            }
+            gameState.lastHitTime = now;
+
+            const comboMultiplier = 1 + 0.2 * (gameState.combo - 1);
+            const scoreGain = Math.floor((10 * damage + 3 * gameState.currentReef.intensity) * comboMultiplier);
+            gameState.score += scoreGain;
+
+            gameState.currentReef.hp = Math.max(0, gameState.currentReef.hp - damage);
+
+            showEffect(effectClass, damage);
+
+            if (gameState.currentReef.hp <= 0) {
+                gameState.destroyedReefs++;
+                gameState.score += 5 * gameState.level;
+
+                if (gameState.destroyedReefs > 0 && gameState.destroyedReefs % 5 === 0) {
+                    gameState.level++;
+                }
+                
+                // [수정된 부분] 중앙 메시지 함수 호출
+                showArenaMessage(getDestroyMessage(type), 'success');
+                
+                setTimeout(() => {
+                    if (gameState.active) {
+                        gameState.currentReef = generateReef();
+                        updateUI();
+                    }
+                }, 1000); 
+            } else {
+                 // [수정된 부분] 중앙 메시지 함수 호출
+                showArenaMessage(getHitMessage(type, damage), 'info');
+            }
+
+            updateUI();
+        }
+
+        // 이펙트 표시
+        function showEffect(type, damage) {
+            const arena = document.getElementById('arena');
+            const rock = document.getElementById('rock');
+
+            rock.style.animation = 'none';
+            setTimeout(() => {
+                rock.style.animation = 'rockFloat 3s ease-in-out infinite';
+            }, 10);
+
+            const damageText = document.createElement('div');
+            damageText.className = 'damage-text';
+            damageText.textContent = `-${damage}`;
+            damageText.style.color = getEffectColor(type);
+            damageText.style.textShadow = `0 0 20px ${getEffectColor(type)}, 0 4px 12px rgba(0,0,0,0.4)`;
+            arena.appendChild(damageText);
+
+            if (type === 'strong') {
+                const shockwave = document.createElement('div');
+                shockwave.className = 'effect-shockwave';
+                arena.appendChild(shockwave);
+
+                const shockwaveRing = document.createElement('div');
+                shockwaveRing.className = 'effect-shockwave-ring';
+                arena.appendChild(shockwaveRing);
+
+                setTimeout(() => {
+                    if(arena.contains(shockwave)) arena.removeChild(shockwave);
+                    if(arena.contains(shockwaveRing)) arena.removeChild(shockwaveRing);
+                }, 800);
+            }
+
+            setTimeout(() => {
+                if (arena.contains(damageText)) {
+                    arena.removeChild(damageText);
+                }
+            }, 1000);
+        }
+
+        // 이펙트 색상
+        function getEffectColor(type) {
+            switch (type) {
+                case 'strong': return '#fbbf24';
+                case 'wave': return '#38bdf8';
+                case 'lightning': return '#fde047';
+                default: return '#ffffff';
+            }
+        }
+
+        // 메시지 생성
+        function getDestroyMessage(type) {
+            const messages = {
+                strong: ['💥 강력한 일격으로 암초를 격파!', '💪 완벽한 타격! 암초가 산산조각!'],
+                wave: ['🌊 파도의 힘으로 암초를 쓸어냈습니다!', '〰️ 거센 파도가 암초를 집어삼켰어요!'],
+                lightning: ['⚡ 번개의 위력으로 암초를 격파!', '🌩️ 천둥번개가 암초를 불태웠습니다!']
+            };
+            const typeMessages = messages[type] || ['암초를 격파했습니다!'];
+            return typeMessages[Math.floor(Math.random() * typeMessages.length)];
+        }
+
+        function getHitMessage(type, damage) {
+            if (damage >= 3) {
+                return type === 'lightning' ? '⚡ 강력한 번개가 암초를 관통!' : 
+                       type === 'wave' ? '🌊 거센 파도가 암초를 강타!' : '💪 강력한 타격!';
+            } else if (damage >= 2) {
+                return type === 'lightning' ? '🌩️ 번개가 암초에 상처를 냈어요!' : 
+                       type === 'wave' ? '〰️ 파도가 암초를 적셨습니다!' : '🔨 견실한 타격!';
+            } else {
+                return type === 'lightning' ? '✨ 전기가 스파크를 일으켰어요!' : 
+                       type === 'wave' ? '💧 물방울이 튀었습니다!' : '👊 타격이 전달됐어요!';
+            }
+        }
+
+        // [수정된 부분] 게임 내 중앙 메시지 표시 함수
+        let messageTimer;
+        function showArenaMessage(message, type) {
+            const messageEl = document.getElementById('arena-message');
+            
+            if (messageTimer) {
+                clearTimeout(messageTimer);
+            }
+
+            messageEl.textContent = message;
+            messageEl.className = `arena-message ${type} show`;
+
+            // 3초 후에 메시지 숨김
+            messageTimer = setTimeout(() => {
+                messageEl.classList.remove('show');
+            }, 3000); 
+        }
+
+        // UI 업데이트
+        function updateUI() {
+            document.getElementById('level').textContent = gameState.level;
+            document.getElementById('score').textContent = gameState.score.toLocaleString();
+            document.getElementById('destroyed').textContent = gameState.destroyedReefs;
+            document.getElementById('combo').textContent = gameState.combo;
+            
+            const multiplier = Math.max(1, 1 + 0.2 * (gameState.combo - 1));
+            document.getElementById('combo-multiplier').textContent = `x${multiplier.toFixed(1)}`;
+
+            if (gameState.currentReef) {
+                document.getElementById('reef-type').textContent = gameState.currentReef.type;
+                document.getElementById('reef-intensity').textContent = gameState.currentReef.intensity;
+                
+                const hpPercent = (gameState.currentReef.hp / gameState.currentReef.maxHp) * 100;
+                document.getElementById('hp-fill').style.width = hpPercent + '%';
+                document.getElementById('hp-text').textContent = 
+                    `HP ${gameState.currentReef.hp} / ${gameState.currentReef.maxHp}`;
+            }
+        }
+
+        // 업적 표시
+        function showAchievements() {
+            const achievementsContainer = document.getElementById('achievements');
+            achievementsContainer.innerHTML = '';
+
+            const achievements = [];
+            if (gameState.destroyedReefs >= 10) {
+                achievements.push('🌟 암초 파괴자 - 10개 이상의 암초를 부쉈습니다!');
+            }
+            if (gameState.level >= 3) {
+                achievements.push('⛵ 숙련된 항해사 - 레벨 3에 도달했습니다!');
+            }
+            if (gameState.score >= 200) {
+                achievements.push('💎 고득점자 - 200점을 달성했습니다!');
+            }
+            if (gameState.combo >= 5) {
+                achievements.push('🔥 콤보 마스터 - 5콤보를 달성했습니다!');
+            }
+            if (gameState.destroyedReefs >= 25) {
+                achievements.push('💪 암초 정복자 - 25개 이상의 암초를 격파했습니다!');
+            }
+
+            if (achievements.length > 0) {
+                const title = document.createElement('h3');
+                title.textContent = '🏆 달성한 업적';
+                title.style.textAlign = 'center';
+                title.style.margin = '20px 0';
+                title.style.color = '#fbbf24';
+                achievementsContainer.appendChild(title);
+
+                achievements.forEach(achievement => {
+                    const achievementDiv = document.createElement('div');
+                    achievementDiv.className = 'achievement';
+                    achievementDiv.textContent = achievement;
+                    achievementsContainer.appendChild(achievementDiv);
+                });
+            }
+
+            const gameOverDiv = document.getElementById('game-over');
+            gameOverDiv.style.display = 'block';
+            gameOverDiv.innerHTML = `
+                <div class="game-over">
+                    <h3>🧘‍♀️ 감정 항해 완료!</h3>
+                    <p>암초를 부수며 마음속 분노를 해소하셨네요.<br>
+                    실제 생활에서도 이런 방식으로 감정을 건강하게 표현해보세요!</p>
+                    <div style="margin-top: 15px; font-size: 1.2rem;">
+                        <strong>최종 점수: ${gameState.score.toLocaleString()}점</strong><br>
+                        <strong>격파한 암초: ${gameState.destroyedReefs}개</strong>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 키보드 컨트롤
+        document.addEventListener('keydown', (e) => {
+            if (!gameState.active) return;
+            
+            switch(e.key) {
+                case '1':
+                case 'z':
+                case 'Z':
+                    attack('strong');
+                    break;
+                case '2':
+                case 'x':
+                case 'X':
+                    attack('wave');
+                    break;
+                case '3':
+                case 'c':
+                case 'C':
+                    attack('lightning');
+                    break;
+                case 'Escape':
+                    endGame();
+                    break;
+            }
+        });
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+        });
+    </script>
+</body>
+</html>

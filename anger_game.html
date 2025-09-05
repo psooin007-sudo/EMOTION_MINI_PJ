@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>창문 깨기 게임 - 프로 버전</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            max-width: 800px;
+            width: 100%;
+            height: 95vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 255, 255, 0.2); }
+            to { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3), 0 0 30px rgba(255, 255, 255, 0.4); }
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 15px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 5px;
+        }
+        
+        .progress-container {
+            margin: 15px 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            height: 12px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 25px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin: 15px auto;
+            justify-content: center;
+            max-width: 500px;
+            width: 100%;
+            flex-grow: 1;
+        }
+        
+        .game-cell {
+            aspect-ratio: 1;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            user-select: none;
+        }
+        
+        .game-cell.selected {
+            border-color: #ffffff;
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.7);
+        }
+
+        .game-cell.glass {
+            background: linear-gradient(145deg, rgba(135, 206, 250, 0.8), rgba(173, 216, 230, 0.6));
+            border-color: rgba(135, 206, 250, 0.8);
+            box-shadow: 0 8px 20px rgba(135, 206, 250, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+            animation: sparkle 3s ease-in-out infinite;
+        }
+        
+        @keyframes sparkle {
+            0%, 100% { box-shadow: 0 8px 20px rgba(135, 206, 250, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.3); }
+            50% { box-shadow: 0 12px 25px rgba(135, 206, 250, 0.5), inset 0 2px 8px rgba(255, 255, 255, 0.5); }
+        }
+        
+        .game-cell.glass:hover {
+            transform: scale(1.08) rotate(1deg);
+            box-shadow: 0 15px 30px rgba(135, 206, 250, 0.5), inset 0 4px 8px rgba(255, 255, 255, 0.4);
+            border-color: rgba(135, 206, 250, 1);
+        }
+        
+        .game-cell.broken {
+            background: linear-gradient(145deg, rgba(220, 20, 60, 0.8), rgba(139, 0, 0, 0.6));
+            border-color: rgba(220, 20, 60, 0.8);
+            box-shadow: 0 8px 20px rgba(220, 20, 60, 0.3);
+            animation: crack 0.6s ease-out;
+        }
+        
+        @keyframes crack {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15) rotate(5deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        
+        .game-cell.empty {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+            cursor: default;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(255, 107, 107, 0.4);
+        }
+        
+        .victory {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            border-radius: 20px;
+            color: #2d3436;
+            font-weight: 600;
+            animation: celebration 1s ease-in-out;
+        }
+        
+        @keyframes celebration {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .difficulty-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .difficulty-btn {
+            padding: 8px 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .difficulty-btn.active {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: scale(1.05);
+        }
+        
+        .difficulty-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .sound-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        
+        .sound-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        .keyboard-guide {
+            position: fixed;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        .keyboard-guide h4 {
+            margin-bottom: 15px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .keyboard-guide ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .keyboard-guide li {
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .keyboard-guide li strong {
+            display: inline-block;
+            width: 80px;
+            font-weight: 600;
+            color: #f1f2f6;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.1; }
+            50% { transform: translateY(-20px) rotate(180deg); opacity: 0.3; }
+        }
+        
+        @media (max-width: 1200px) {
+            .keyboard-guide {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 20px;
+                margin: 10px;
+                height: auto;
+            }
+            
+            .title { font-size: 2rem; }
+            .stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .game-cell { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+
+    <div class="keyboard-guide">
+        <h4>⌨️ 키보드 조작법</h4>
+        <ul>
+            <li><strong>방향키</strong>: 선택 이동</li>
+            <li><strong>Enter</strong>: 유리 깨기</li>
+            <li><strong>Space</strong>: 모두 깨기</li>
+            <li><strong>R</strong>: 새 게임</li>
+            <li><strong>M</strong>: 소리 ON/OFF</li>
+        </ul>
+    </div>
+    
+    <button class="sound-toggle" id="soundToggle" title="소리 온/오프">
+        🔊
+    </button>
+    
+    <div class="game-container">
+        <div class="header">
+            <h1 class="title">😡 분노 폭발! 창문 깨기</h1>
+            <p class="subtitle">화나는 마음을 시원하게 날려버리세요!</p>
+        </div>
+        
+        <div class="difficulty-selector">
+            <button class="difficulty-btn active" data-level="easy">쉬움</button>
+            <button class="difficulty-btn" data-level="normal">보통</button>
+            <button class="difficulty-btn" data-level="hard">어려움</button>
+            <button class="difficulty-btn" data-level="extreme">극한</button>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <span class="stat-value" id="totalGlass">15</span>
+                <div class="stat-label">🧊 전체 유리</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="brokenGlass">0</span>
+                <div class="stat-label">💥 깨진 유리</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="remainingGlass">15</span>
+                <div class="stat-label">🎯 남은 개수</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="completionRate">0%</span>
+                <div class="stat-label">📊 완료율</div>
+            </div>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+        
+        <div class="game-board" id="gameBoard"></div>
+        
+        <div id="victoryMessage"></div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" id="newGameBtn">🔄 새 게임</button>
+            <button class="btn btn-secondary" id="resetBtn">💥 한번에 모두 깨기</button>
+        </div>
+    </div>
+
+    <script>
+        class WindowBreakingGame {
+            constructor() {
+                this.board = [];
+                this.rows = 5;
+                this.cols = 5;
+                this.selectedIndex = 0;
+                this.difficulty = 'easy';
+                this.difficulties = {
+                    easy: { count: 15, emoji: '🧊' },
+                    normal: { count: 20, emoji: '❄️' },
+                    hard: { count: 23, emoji: '🔷' },
+                    extreme: { count: 25, emoji: '💎' }
+                };
+                this.soundEnabled = true;
+                this.score = 0;
+                this.combo = 0;
+
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.error('Web Audio API is not supported in this browser');
+                    this.audioContext = null;
+                }
+                
+                this.initializeElements();
+                this.createParticles();
+                this.newGame();
+                this.setupEventListeners();
+            }
+            
+            initializeElements() {
+                this.gameBoard = document.getElementById('gameBoard');
+                this.totalGlassEl = document.getElementById('totalGlass');
+                this.brokenGlassEl = document.getElementById('brokenGlass');
+                this.remainingGlassEl = document.getElementById('remainingGlass');
+                this.completionRateEl = document.getElementById('completionRate');
+                this.progressBar = document.getElementById('progressBar');
+                this.victoryMessage = document.getElementById('victoryMessage');
+                this.soundToggle = document.getElementById('soundToggle');
+            }
+            
+            createParticles() {
+                const particlesContainer = document.getElementById('particles');
+                for (let i = 0; i < 20; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.top = Math.random() * 100 + '%';
+                    particle.style.width = Math.random() * 6 + 2 + 'px';
+                    particle.style.height = particle.style.width;
+                    particle.style.animationDelay = Math.random() * 6 + 's';
+                    particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+                    particlesContainer.appendChild(particle);
+                }
+            }
+            
+            setupEventListeners() {
+                document.getElementById('newGameBtn').addEventListener('click', () => this.newGame());
+                document.getElementById('resetBtn').addEventListener('click', () => this.breakAllGlass());
+                this.soundToggle.addEventListener('click', () => this.toggleSound());
+                
+                document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.difficulty = btn.dataset.level;
+                        this.newGame();
+                    });
+                });
+            }
+            
+            newGame() {
+                this.board = [];
+                this.score = 0;
+                this.combo = 0;
+                this.selectedIndex = 0;
+                const config = this.difficulties[this.difficulty];
+                const totalCells = this.rows * this.cols;
+                const activeCells = Math.min(config.count, totalCells);
+                
+                for (let i = 0; i < totalCells; i++) {
+                    this.board.push({ state: 'empty' });
+                }
+                
+                const activeIndices = new Set();
+                while (activeIndices.size < activeCells) {
+                    activeIndices.add(Math.floor(Math.random() * totalCells));
+                }
+                
+                activeIndices.forEach(idx => {
+                    this.board[idx].state = 'glass';
+                });
+                
+                this.renderBoard();
+                this.updateStats();
+                this.victoryMessage.innerHTML = '';
+            }
+            
+            renderBoard() {
+                this.gameBoard.innerHTML = '';
+                const config = this.difficulties[this.difficulty];
+                
+                this.board.forEach((cell, idx) => {
+                    const cellEl = document.createElement('div');
+                    cellEl.className = `game-cell ${cell.state}`;
+                    cellEl.dataset.index = idx;
+
+                    if (idx === this.selectedIndex) {
+                        cellEl.classList.add('selected');
+                    }
+                    
+                    switch (cell.state) {
+                        case 'glass':
+                            cellEl.innerHTML = config.emoji;
+                            cellEl.addEventListener('click', () => this.breakGlass(idx));
+                            break;
+                        case 'broken':
+                            cellEl.innerHTML = '💥';
+                            break;
+                        case 'empty':
+                            cellEl.innerHTML = '';
+                            break;
+                    }
+                    this.gameBoard.appendChild(cellEl);
+                });
+            }
+            
+            breakGlass(index) {
+                if (this.board[index].state !== 'glass') return;
+                
+                this.board[index].state = 'broken';
+                this.combo++;
+                this.score += this.combo * 10;
+                
+                this.playSound('break');
+                this.createBreakEffect(index);
+                this.renderBoard();
+                this.updateStats();
+                
+                if (this.isGameComplete()) {
+                    this.showVictory();
+                }
+            }
+            
+            breakAllGlass() {
+                let delay = 0;
+                this.board.forEach((cell, idx) => {
+                    if (cell.state === 'glass') {
+                        setTimeout(() => this.breakGlass(idx), delay);
+                        delay += 100;
+                    }
+                });
+            }
+            
+            createBreakEffect(index) {
+                const cellEl = document.querySelector(`[data-index="${index}"]`);
+                if (!cellEl) return;
+                
+                for (let i = 0; i < 8; i++) {
+                    const fragment = document.createElement('div');
+                    fragment.style.position = 'absolute';
+                    fragment.style.left = '50%';
+                    fragment.style.top = '50%';
+                    fragment.style.width = '4px';
+                    fragment.style.height = '4px';
+                    fragment.style.background = 'rgba(135, 206, 250, 0.8)';
+                    fragment.style.borderRadius = '50%';
+                    fragment.style.pointerEvents = 'none';
+                    fragment.style.zIndex = '1000';
+                    
+                    const angle = (Math.PI * 2 * i) / 8;
+                    const distance = 50 + Math.random() * 30;
+                    const duration = 0.8 + Math.random() * 0.4;
+                    
+                    fragment.animate([
+                        { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                        { transform: `translate(${Math.cos(angle) * distance - 50}%, ${Math.sin(angle) * distance - 50}%) scale(0)`, opacity: 0 }
+                    ], {
+                        duration: duration * 1000,
+                        easing: 'ease-out'
+                    });
+                    
+                    cellEl.appendChild(fragment);
+                    setTimeout(() => fragment.remove(), duration * 1000);
+                }
+            }
+            
+            updateStats() {
+                const total = this.board.filter(cell => cell.state !== 'empty').length;
+                const broken = this.board.filter(cell => cell.state === 'broken').length;
+                const remaining = total - broken;
+                const completionRate = total > 0 ? Math.round((broken / total) * 100) : 0;
+                
+                this.totalGlassEl.textContent = total;
+                this.brokenGlassEl.textContent = broken;
+                this.remainingGlassEl.textContent = remaining;
+                this.completionRateEl.textContent = completionRate + '%';
+                this.progressBar.style.width = completionRate + '%';
+            }
+            
+            isGameComplete() {
+                return this.board.filter(cell => cell.state === 'glass').length === 0;
+            }
+            
+            showVictory() {
+                this.playSound('victory');
+                this.createFireworks();
+                
+                const messages = [
+                    '🎉 완벽! 모든 창문을 깨뜨렸어요!',
+                    '🔥 분노 해소 완료!',
+                    '💪 대단해요! 속이 좀 시원해졌나요?',
+                    '🎊 훌륭한 실력이에요!'
+                ];
+                
+                const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                this.victoryMessage.innerHTML = `<div class="victory">${randomMessage}<br><small>콤보: ${this.combo}연속, 점수: ${this.score}점</small></div>`;
+            }
+            
+            createFireworks() {
+                for (let i = 0; i < 50; i++) {
+                    setTimeout(() => {
+                        const firework = document.createElement('div');
+                        firework.style.position = 'fixed';
+                        firework.style.left = Math.random() * window.innerWidth + 'px';
+                        firework.style.top = Math.random() * window.innerHeight + 'px';
+                        firework.style.width = '6px';
+                        firework.style.height = '6px';
+                        firework.style.background = `hsl(${Math.random() * 360}, 100%, 70%)`;
+                        firework.style.borderRadius = '50%';
+                        firework.style.pointerEvents = 'none';
+                        firework.style.zIndex = '9999';
+                        
+                        firework.animate([
+                            { transform: 'scale(0)', opacity: 1 },
+                            { transform: 'scale(3)', opacity: 0 }
+                        ], { duration: 1000, easing: 'ease-out' });
+                        
+                        document.body.appendChild(firework);
+                        setTimeout(() => firework.remove(), 1000);
+                    }, i * 50);
+                }
+            }
+            
+            playSound(type) {
+                if (!this.audioContext || !this.soundEnabled) return;
+                const audioContext = this.audioContext;
+                try {
+                    if (type === 'break') {
+                        // 더 단순하고 안정적인 '쨍그랑' 소리로 변경
+                        const bufferSize = audioContext.sampleRate * 0.3; // 소리 길이 약간 줄임
+                        const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+                        const output = buffer.getChannelData(0);
+                        for (let i = 0; i < bufferSize; i++) {
+                            output[i] = Math.random() * 2 - 1;
+                        }
+                        
+                        const noiseSource = audioContext.createBufferSource();
+                        noiseSource.buffer = buffer;
+
+                        // Bandpass 대신 Highpass 필터 사용 (더 선명한 파열음)
+                        const filter = audioContext.createBiquadFilter();
+                        filter.type = 'highpass';
+                        filter.frequency.setValueAtTime(1000, audioContext.currentTime); // 1000Hz 이상 소리만 통과
+
+                        const gainNode = audioContext.createGain();
+                        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime); // 볼륨을 약간 낮춰 찢어지는 소리 방지
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                        
+                        noiseSource.connect(filter);
+                        filter.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        noiseSource.start();
+                        noiseSource.stop(audioContext.currentTime + 0.2);
+
+                    } else if (type === 'victory') {
+                        const frequencies = [523, 659, 783, 1047];
+                        frequencies.forEach((freq, i) => {
+                            setTimeout(() => {
+                                const osc = audioContext.createOscillator();
+                                const gain = audioContext.createGain();
+                                osc.connect(gain);
+                                gain.connect(audioContext.destination);
+                                osc.type = 'sine';
+                                osc.frequency.value = freq;
+                                gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+                                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                                osc.start();
+                                osc.stop(audioContext.currentTime + 0.3);
+                            }, i * 150);
+                        });
+                    }
+                } catch (e) {
+                    console.error('Error playing sound:', e);
+                }
+            }
+            
+            toggleSound() {
+                this.soundEnabled = !this.soundEnabled;
+                this.soundToggle.textContent = this.soundEnabled ? '🔊' : '🔇';
+            }
+
+            moveSelection(key) {
+                let newIndex = this.selectedIndex;
+                const lastIndex = this.rows * this.cols - 1;
+
+                switch (key) {
+                    case 'ArrowUp': newIndex -= this.cols; break;
+                    case 'ArrowDown': newIndex += this.cols; break;
+                    case 'ArrowLeft': if (this.selectedIndex % this.cols !== 0) newIndex -= 1; break;
+                    case 'ArrowRight': if (this.selectedIndex % this.cols !== this.cols - 1) newIndex += 1; break;
+                }
+
+                if (newIndex >= 0 && newIndex <= lastIndex) {
+                    this.selectedIndex = newIndex;
+                    this.renderBoard();
+                }
+            }
+
+            confirmSelection() {
+                if (this.board[this.selectedIndex].state === 'glass') {
+                    this.breakGlass(this.selectedIndex);
+                }
+            }
+        }
+        
+        const game = new WindowBreakingGame();
+        
+        const unlockAudio = () => {
+            if (game && game.audioContext && game.audioContext.state === 'suspended') {
+                game.audioContext.resume().then(() => {
+                    console.log('AudioContext resumed!');
+                    document.removeEventListener('click', unlockAudio);
+                    document.removeEventListener('touchstart', unlockAudio);
+                });
+            }
+        };
+        document.addEventListener('click', unlockAudio);
+        document.addEventListener('touchstart', unlockAudio);
+
+
+        document.addEventListener('keydown', (e) => {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                e.preventDefault();
+                game.moveSelection(e.key);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                game.confirmSelection();
+            } else if (e.key === 'r' || e.key === 'R') {
+                game.newGame();
+            } else if (e.key === ' ') {
+                e.preventDefault();
+                game.breakAllGlass();
+            } else if (e.key === 'm' || e.key === 'M') {
+                game.toggleSound();
+            }
+        });
+        
+        document.addEventListener('touchstart', (e) => {
+            if (e.target.classList.contains('game-cell')) {
+                e.target.style.transform = 'scale(0.95)';
+            }
+        });
+        
+        document.addEventListener('touchend', (e) => {
+            if (e.target.classList.contains('game-cell')) {
+                e.target.style.transform = '';
+            }
+        });
+        
+    </script>
+</body>
+</html>
