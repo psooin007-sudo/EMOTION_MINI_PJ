@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # === 스타일링 (기본 Streamlit 사이즈 + 사이드바 숨김) ===
 APP1_STYLE = """
 <style>
@@ -283,23 +282,15 @@ textarea::placeholder {
 }
 </style>
 """# integrated_main.py
-=======
-# main_with_graphs_integrated.py
->>>>>>> f81054bf3e5cea299f28fc141e2bd08a1635d760
 import streamlit as st
 import subprocess
 import sys
 import os
-<<<<<<< HEAD
-=======
-import threading
->>>>>>> f81054bf3e5cea299f28fc141e2bd08a1635d760
 from datetime import datetime, timedelta
 import json
 import time
 import base64
 import gzip
-<<<<<<< HEAD
 import atexit
 from transformers import pipeline
 
@@ -314,23 +305,12 @@ hide_sidebar()   # ← 이 한 줄이 핵심
 
 # 외부 라이브러리 자동 설치
 import plotly.graph_objects as go
-=======
-import numpy as np
-import atexit
-
-# web_no_key_rere.py
-# 외부 라이브러리 자동 설치
-
-import plotly.graph_objects as go
-import plotly.express as px
->>>>>>> f81054bf3e5cea299f28fc141e2bd08a1635d760
 import pandas as pd
 from plotly.subplots import make_subplots
 
 from emotion_model import analyze_emotion_from_image, detect_face_and_analyze, get_latest_emotion, reset_emotion_state
 import emotion_list
 
-<<<<<<< HEAD
 # === 한 런(run)에서 중복 버튼 렌더 방지용 가드 ===
 _STOP_BTN_DRAWN = False
 
@@ -568,13 +548,10 @@ textarea:focus {
 </style>
 """
 
-=======
->>>>>>> f81054bf3e5cea299f28fc141e2bd08a1635d760
 # 페이지 설정
 st.set_page_config(
     page_title="감정 분석 시스템",
     page_icon="🎭",
-<<<<<<< HEAD
     layout="centered",
     initial_sidebar_state="collapsed"
 )
@@ -583,13 +560,6 @@ st.set_page_config(
 st.markdown(APP1_STYLE, unsafe_allow_html=True)
 
 # === 세션 상태 초기화 ===
-=======
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-# 세션 상태 초기화
->>>>>>> f81054bf3e5cea299f28fc141e2bd08a1635d760
 if 'current_page' not in st.session_state:
     st.session_state.current_page = 'main'
 
@@ -598,7 +568,6 @@ if 'webcam_process' not in st.session_state:
 
 if 'emotion_history' not in st.session_state:
     st.session_state.emotion_history = []
-<<<<<<< HEAD
     
 if 'was_webcam_running' not in st.session_state:
     st.session_state.was_webcam_running = False
@@ -660,14 +629,6 @@ def analyze_emotion(text):
         return "복잡", 75.0
 
 # === 정리 함수들 (기존 main.py에서) ===
-=======
-
-# 감정 데이터 (통합된 버전)
-EMOTIONS = emotion_list.emotions
-
-# === 정리 함수들 ===
-
->>>>>>> f81054bf3e5cea299f28fc141e2bd08a1635d760
 def cleanup_processes():
     """앱 종료 시 웹캠 프로세스 정리 및 JSON 파일 삭제"""
     # 웹캠 프로세스 종료
@@ -694,10 +655,6 @@ def cleanup_processes():
     except Exception as e:
         print(f"❌ latest_emotion_result.json 파일 삭제 실패: {e}")
 
-<<<<<<< HEAD
-=======
-
->>>>>>> f81054bf3e5cea299f28fc141e2bd08a1635d760
 def shutdown_app():
     """앱 수동 종료 함수"""
     st.success("🔄 프로그램을 종료합니다...")
@@ -708,117 +665,7 @@ def shutdown_app():
 # 자동 정리 등록
 atexit.register(cleanup_processes)
 
-<<<<<<< HEAD
 # === 웹캠 프로세스 관리 함수들 (기존 main.py에서) ===
-=======
-# === 유틸리티 함수들 ===
-
-def safe_get_query_param(param_name, default_value):
-    """안전한 쿼리 파라미터 추출"""
-    try:
-        if hasattr(st, 'query_params'):
-            if param_name in st.query_params:
-                return st.query_params[param_name]
-        elif hasattr(st, 'experimental_get_query_params'):
-            params = st.experimental_get_query_params()
-            if param_name in params:
-                return params[param_name][0]
-        return default_value
-    except Exception as e:
-        st.error(f"쿼리 파라미터 읽기 오류: {e}")
-        return default_value
-
-def load_url_history_data():
-    """URL에서 압축된 히스토리 데이터 복원"""
-    try:
-        hist_param = safe_get_query_param('hist', None)
-        if not hist_param:
-            return []
-        
-        print(f"📊 URL에서 히스토리 데이터 복원 중... (길이: {len(hist_param)})")
-        
-        # base64 디코딩 → gzip 압축 해제 → JSON 파싱
-        compressed_data = base64.b64decode(hist_param.encode('utf-8'))
-        json_str = gzip.decompress(compressed_data).decode('utf-8')
-        compact_data = json.loads(json_str)
-        
-        # 압축된 형식을 원래 형식으로 복원
-        restored_history = []
-        for item in compact_data:
-            try:
-                timestamp = datetime.fromtimestamp(item['t'])
-                restored_history.append({
-                    'emotion': item['e'],
-                    'score': float(item['s']),
-                    'timestamp': timestamp,
-                    'datetime': timestamp.strftime('%Y-%m-%d %H:%M:%S'),
-                    'raw_emotion': item['e']
-                })
-            except (KeyError, ValueError, OSError) as e:
-                print(f"⚠️ 데이터 복원 중 오류: {e}")
-                continue
-        
-        print(f"✅ {len(restored_history)}개 히스토리 복원 완료")
-        return restored_history
-        
-    except Exception as e:
-        print(f"❌ URL 히스토리 복원 실패: {e}")
-        return []
-
-def load_local_emotion_history():
-    """로컬 감정 히스토리 로드 (파일에서)"""
-    try:
-        if os.path.exists('emotion_history.json'):
-            with open('emotion_history.json', 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                # timestamp 문자열을 datetime 객체로 변환
-                for item in data:
-                    if isinstance(item.get('timestamp'), (int, float)):
-                        item['timestamp'] = datetime.fromtimestamp(item['timestamp'])
-                    elif isinstance(item.get('timestamp'), str):
-                        try:
-                            item['timestamp'] = datetime.fromisoformat(item['timestamp'])
-                        except:
-                            item['timestamp'] = datetime.strptime(item['timestamp'], '%Y-%m-%d %H:%M:%S')
-                return data
-    except Exception as e:
-        print(f"로컬 히스토리 로드 실패: {e}")
-    return []
-
-def load_all_emotion_data():
-    """모든 소스에서 감정 데이터 로드"""
-    all_history = []
-    
-    # 1. URL에서 압축된 히스토리 데이터 로드
-    url_history = load_url_history_data()
-    if url_history:
-        all_history.extend(url_history)
-    
-    # 2. 로컬 파일에서 로드
-    local_history = load_local_emotion_history()
-    if local_history:
-        all_history.extend(local_history)
-    
-    # 3. 세션 상태에서 로드
-    session_history = st.session_state.get('emotion_history', [])
-    if session_history:
-        all_history.extend(session_history)
-    
-    # 4. 중복 제거 (타임스탬프 기준)
-    seen_timestamps = set()
-    unique_history = []
-    
-    for entry in sorted(all_history, key=lambda x: x['timestamp']):
-        timestamp_key = entry['timestamp'].strftime('%Y-%m-%d %H:%M:%S')
-        if timestamp_key not in seen_timestamps:
-            seen_timestamps.add(timestamp_key)
-            unique_history.append(entry)
-    
-    return unique_history
-
-# === 웹캠 프로세스 관리 함수들 ===
-
->>>>>>> f81054bf3e5cea299f28fc141e2bd08a1635d760
 def start_webcam_process():
     """web.py를 별도 프로세스로 실행"""
     try:
@@ -854,12 +701,7 @@ def is_webcam_running():
         return st.session_state.webcam_process.poll() is None
     return False
 
-<<<<<<< HEAD
 # === 차트 생성 함수들 (웹캠 분석 결과용) ===
-=======
-# === 차트 생성 함수들 ===
-
->>>>>>> f81054bf3e5cea299f28fc141e2bd08a1635d760
 def create_emotion_gauge(score, color):
     """감정 신뢰도 게이지 차트"""
     fig = go.Figure(go.Indicator(
@@ -951,11 +793,7 @@ def create_enhanced_timeline_chart(history_data, minutes=30):
             ))
     
     fig.update_layout(
-<<<<<<< HEAD
         title=f"감정 변화 추이 (최근 {minutes}분)",
-=======
-        title=f"감정 변화 추이)",
->>>>>>> f81054bf3e5cea299f28fc141e2bd08a1635d760
         xaxis_title="시간",
         yaxis_title="신뢰도 (%)",
         height=500,
@@ -1008,21 +846,13 @@ def create_emotion_distribution_chart(history_data, minutes=30):
     )])
     
     fig.update_layout(
-<<<<<<< HEAD
         title=f"감정 분포 (최근 {minutes}분)",
-=======
-        title=f"감정 분포)",
->>>>>>> f81054bf3e5cea299f28fc141e2bd08a1635d760
         height=400,
         margin=dict(l=20, r=20, t=60, b=20)
     )
     
     return fig
 
-<<<<<<< HEAD
-=======
-
->>>>>>> f81054bf3e5cea299f28fc141e2bd08a1635d760
 def create_emotion_stats_table(history_data, minutes=30):
     """감정 통계 테이블"""
     if not history_data:
@@ -1073,7 +903,6 @@ def create_emotion_stats_table(history_data, minutes=30):
     df = pd.DataFrame(table_data)
     return df
 
-<<<<<<< HEAD
 # === 메인 페이지 함수 ===
 def show_main_page():
     """메인 선택 페이지"""
@@ -1284,130 +1113,6 @@ def load_all_emotion_data():
 
 def show_analytics_page():
     """고급 분석 대시보드 페이지 - 웹캠 결과 포함"""
-=======
-# === 페이지 함수들 ===
-
-def show_main_page():
-    """메인 선택 페이지"""
-    st.title("😊 감정 분석 시스템")
-    st.markdown("---")
-    
-    # 로컬 히스토리 미리보기
-    local_history = load_local_emotion_history()
-    if local_history:
-        st.sidebar.success(f"📊 로컬 데이터: {len(local_history)}개 기록")
-        
-        # 최근 감정 미리보기 (사이드바)
-        if len(local_history) > 0:
-            st.sidebar.subheader("📈 최근 감정")
-            recent = local_history[-3:]  # 최근 3개
-            for i, emotion_data in enumerate(reversed(recent)):
-                emotion_info = EMOTIONS.get(emotion_data['emotion'], {
-                    'emoji': '🤔', 'korean': emotion_data['emotion']
-                })
-                st.sidebar.write(f"{emotion_info['emoji']} {emotion_info['korean']} ({emotion_data['score']*100:.1f}%)")
-    
-    # 설명
-    st.markdown("""
-    ### 🎭 어떤 방법으로 감정을 분석하고 싶으세요?
-    
-    세 가지 방법 중 하나를 선택해주세요:
-    """)
-    
-    # 선택 버튼들을 세 개의 컬럼으로 배치
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("#### 📹 실시간 웹캠 분석")
-        st.write("웹캠을 통해 실시간으로 감정을 분석합니다")
-        
-        if is_webcam_running():
-            if st.button("🔄 웹캠 창 다시 열기", use_container_width=True):
-                stop_webcam_process()
-                st.session_state.webcam_process = start_webcam_process()
-                if st.session_state.webcam_process:
-                    st.success("✅ 웹캠이 실행되고 있습니다!")
-        else:
-            if st.button("🎥 웹캠으로 분석하기", use_container_width=True):
-                st.session_state.webcam_process = start_webcam_process()
-                if st.session_state.webcam_process:
-                    st.success("✅ 웹캠이 실행되고 있습니다!")
-                    st.info("💡 웹캠 창이 켜진 상태에서 표정을 지어주세요.\n\n🛑 웹캠을 종료하면 감정 분석 결과가 제공됩니다.")
-    
-    with col2:
-        st.markdown("#### ✋ 수동으로 감정 선택")
-        st.write("직접 감정을 선택해서 결과를 확인합니다")
-        if st.button("🎯 직접 선택하기", use_container_width=True):
-            st.session_state.current_page = 'manual'
-            st.rerun()
-    
-    # 웹캠 제어 버튼들 (웹캠이 실행 중일 때만 표시)
-    if is_webcam_running():
-        st.markdown("---")
-        st.markdown("#### 🎮 웹캠 제어")
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            if st.button("🛑 웹캠 종료", use_container_width=True):
-                if stop_webcam_process():
-                    st.success("✅ 웹캠이 종료되었습니다.")
-                    # 웹캠 종료 시 자동으로 대시보드로 이동
-                    st.session_state.current_page = 'analytics'
-                    st.rerun()
-                
-        with col2:
-            if st.button("🔄 상태 새로고침", use_container_width=True):
-                st.rerun()
-        
-        with col3:
-            st.info("🎯 **웹캠 사용 안내**\n\n"
-                    "• 얼굴을 카메라 정면에 위치시키세요\n"
-                    "• 다양한 표정을 지어 감정 인식 정확도를 확인하세요\n"
-                    "• 세션 종료 시 감정 분석 결과가 화면에 표시됩니다\n")
-        
-    
-        
-def show_manual_page():
-    """수동 선택 페이지"""
-    st.title("✋ 감정을 직접 선택해주세요")
-    st.markdown("---")
-    
-    # 뒤로가기 버튼
-    if st.button("🔙 메인으로 돌아가기"):
-        st.session_state.current_page = 'main'
-        st.rerun()
-    
-    st.markdown("### 🎭 어떤 감정을 선택하시겠어요?")
-    
-    # 감정 선택 버튼들을 3x2 그리드로 배치
-    cols = st.columns(3)
-    
-    for i, (emotion_key, emotion_data) in enumerate(EMOTIONS.items()):
-        col = cols[i % 3]
-        with col:
-            if st.button(
-                f"{emotion_data['emoji']} {emotion_data['korean']}", 
-                use_container_width=True,
-                key=f"emotion_{emotion_key}"
-            ):
-                # 수동 선택 시에도 히스토리에 추가
-                current_time = datetime.now()
-                st.session_state.emotion_history.append({
-                    'emotion': emotion_key,
-                    'score': 0.9,  # 수동 선택이므로 높은 신뢰도
-                    'timestamp': current_time,
-                    'datetime': current_time.strftime('%Y-%m-%d %H:%M:%S'),
-                    'raw_emotion': emotion_key
-                })
-                
-                st.session_state.current_page = 'result'
-                st.session_state.selected_emotion = emotion_key
-                st.session_state.manual_score = 0.9
-                st.rerun()
-
-def show_analytics_page():
-    """고급 분석 대시보드 페이지"""
->>>>>>> f81054bf3e5cea299f28fc141e2bd08a1635d760
     st.title("📊 감정 분석 대시보드")
     st.markdown("---")
     
@@ -1420,11 +1125,7 @@ def show_analytics_page():
     all_history = load_all_emotion_data()
     
     if not all_history:
-<<<<<<< HEAD
         st.warning("🔭 분석할 감정 데이터가 없습니다.")
-=======
-        st.warning("📭 분석할 감정 데이터가 없습니다.")
->>>>>>> f81054bf3e5cea299f28fc141e2bd08a1635d760
         st.info("먼저 웹캠 프로그램을 실행하거나 수동으로 감정을 선택해주세요!")
         return
     
@@ -1462,7 +1163,6 @@ def show_analytics_page():
     # 수동 새로고침 버튼
     if st.sidebar.button("🔄 데이터 새로고침"):
         st.rerun()
-<<<<<<< HEAD
     # 메인 대시보드 - 세로 배치로 변경
     st.subheader(f"📈 감정 변화 추이")
     timeline_chart = create_enhanced_timeline_chart(all_history, minutes)
@@ -1477,27 +1177,6 @@ def show_analytics_page():
         st.plotly_chart(distribution_chart, use_container_width=True)
     else:
         st.info("해당 시간 범위에 데이터가 없습니다.")
-=======
-    
-    # 메인 대시보드
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        st.subheader(f"📈 감정 변화 추이")
-        timeline_chart = create_enhanced_timeline_chart(all_history, minutes)
-        if timeline_chart:
-            st.plotly_chart(timeline_chart, use_container_width=True)
-        else:
-            st.info("해당 시간 범위에 데이터가 없습니다.")
-    
-    with col2:
-        st.subheader(f"🥧 감정 분포")
-        distribution_chart = create_emotion_distribution_chart(all_history, minutes)
-        if distribution_chart:
-            st.plotly_chart(distribution_chart, use_container_width=True)
-        else:
-            st.info("해당 시간 범위에 데이터가 없습니다.")
->>>>>>> f81054bf3e5cea299f28fc141e2bd08a1635d760
     # 통계 테이블
     st.subheader(f"📊 감정 통계")
     stats_table = create_emotion_stats_table(all_history, minutes)
@@ -1505,11 +1184,7 @@ def show_analytics_page():
         st.dataframe(stats_table, use_container_width=True)
     else:
         st.info("해당 시간 범위에 데이터가 없습니다.")
-<<<<<<< HEAD
     
-=======
-        
->>>>>>> f81054bf3e5cea299f28fc141e2bd08a1635d760
     # 원시 데이터 표시 (선택사항)
     show_raw_data = st.checkbox("📋 원시 데이터 보기")
     if show_raw_data:
@@ -1530,7 +1205,6 @@ def show_analytics_page():
         else:
             st.info("해당 시간 범위에 데이터가 없습니다.")
 
-<<<<<<< HEAD
     # --- 하단 CTA: 페이지 맨 아래, 가운데 정렬 ---
     st.markdown("<div style='height:40px'></div>", unsafe_allow_html=True)  # 약간의 여백
 
@@ -1557,274 +1231,6 @@ def main():
     else:
         st.session_state.current_page = 'main'
         st.rerun()
-=======
-def show_result_page():
-    """감정 결과 페이지 (향상된 버전)"""
-    import random
-    
-    # URL 파라미터에서 감정 정보 가져오기
-    emotion_param = safe_get_query_param('emotion', None)
-    score_param = safe_get_query_param('score', None)
-    
-    # URL에서 히스토리 데이터 확인 및 세션 상태 업데이트
-    url_history = load_url_history_data()
-    if url_history:
-        # 중복 제거하면서 세션에 추가
-        existing_times = {h['timestamp'].strftime('%Y-%m-%d %H:%M:%S') 
-                         for h in st.session_state.emotion_history}
-        
-        new_entries = []
-        for entry in url_history:
-            time_key = entry['timestamp'].strftime('%Y-%m-%d %H:%M:%S')
-            if time_key not in existing_times:
-                new_entries.append(entry)
-        
-        if new_entries:
-            st.session_state.emotion_history.extend(new_entries)
-            st.info(f"📊 웹캠에서 {len(new_entries)}개의 새로운 기록이 추가되었습니다!")
-    
-    # 감정 정보 결정 우선순위: URL > 세션 > 기본값
-    if emotion_param:
-        emotion_key = emotion_param
-        st.session_state.selected_emotion = emotion_param
-    else:
-        emotion_key = st.session_state.get('selected_emotion', 'neutral')
-    
-    # 점수 정보 결정
-    if score_param:
-        try:
-            score = float(score_param)
-        except:
-            score = st.session_state.get('manual_score', 0.8)
-    else:
-        score = st.session_state.get('manual_score', 0.8)
-    
-    emotion = EMOTIONS.get(emotion_key, EMOTIONS['neutral'])
-    
-    # 현재 감정을 히스토리에 추가 (중복 방지)
-    current_time = datetime.now()
-    should_add = True
-    
-    if st.session_state.emotion_history:
-        last_entry = st.session_state.emotion_history[-1]
-        time_diff = (current_time - last_entry['timestamp']).total_seconds()
-        if last_entry['emotion'] == emotion_key and time_diff < 10:
-            should_add = False
-    
-    if should_add and emotion_param:  # URL에서 온 경우만 자동 추가
-        st.session_state.emotion_history.append({
-            'emotion': emotion_key,
-            'score': score,
-            'timestamp': current_time,
-            'datetime': current_time.strftime('%Y-%m-%d %H:%M:%S'),
-            'raw_emotion': emotion_key
-        })
-        
-        # 히스토리 길이 제한
-        if len(st.session_state.emotion_history) > 100:
-            st.session_state.emotion_history = st.session_state.emotion_history[-100:]
-    
-    # 뒤로가기 버튼
-    if st.button("🔙 메인으로 돌아가기"):
-        st.session_state.current_page = 'main'
-        if 'selected_emotion' in st.session_state:
-            del st.session_state.selected_emotion
-        if 'manual_score' in st.session_state:
-            del st.session_state.manual_score
-        st.query_params.clear()
-        st.rerun()
-    
-    # 메인 헤더
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.markdown(f"""
-        <div style="text-align: center; padding: 2rem; background: linear-gradient(135deg, {emotion['color']}20 0%, {emotion['color']}40 100%); border-radius: 15px; margin-bottom: 2rem;">
-            <div style="font-size: 5rem; margin: 0;">{emotion['emoji']}</div>
-            <h2 style="color: {emotion['color']}; margin: 1rem 0; font-size: 2.5rem;">
-                {emotion['korean']}
-            </h2>
-            <h3 style="color: {emotion['color']}; margin: 0.5rem 0; font-size: 1.5rem; text-transform: uppercase;">
-                {emotion_key}
-            </h3>
-            <p style="font-size: 1.3rem; color: #666; margin: 1rem 0; line-height: 1.6;">
-                {emotion['description']}
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    # 신뢰도 게이지
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        gauge_chart = create_emotion_gauge(score, emotion['color'])
-        st.plotly_chart(gauge_chart, use_container_width=True)
-    
-    # 실시간 미니 차트 (히스토리가 충분할 때)
-    if len(st.session_state.emotion_history) > 1:
-        st.subheader("📈 실시간 감정 변화")
-        mini_timeline = create_enhanced_timeline_chart(st.session_state.emotion_history, 10)
-        if mini_timeline:
-            st.plotly_chart(mini_timeline, use_container_width=True)
-    
-    # 솔루션 및 조언
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.subheader("💡 추천 솔루션")
-        for solution in emotion['solutions']:
-            st.markdown(f"• {solution}")
-        
-        st.subheader("💭 명언")
-        selected_quotes = random.sample(emotion['quotes'], min(2, len(emotion['quotes'])))
-        for quote in selected_quotes:
-            st.markdown(f"> {quote}")
-    
-    with col2:
-        st.subheader("🎯 조언")
-        st.info(emotion['tips'])
-        
-        # 관련 감정들 표시
-        if len(st.session_state.emotion_history) > 0:
-            recent_emotions = list(set([h['emotion'] for h in st.session_state.emotion_history[-10:]]))
-            if len(recent_emotions) > 1:
-                st.subheader("🔄 최근 감정들")
-                emotion_cols = st.columns(min(len(recent_emotions), 4))
-                for i, emo in enumerate(recent_emotions[:4]):  # 최대 4개까지만
-                    with emotion_cols[i]:
-                        emo_data = EMOTIONS.get(emo, {'emoji': '🤔', 'korean': emo})
-                        st.markdown(f"<div style='text-align: center; padding: 0.5rem; background: {emo_data.get('color', '#808080')}20; border-radius: 8px;'>{emo_data['emoji']}<br><small>{emo_data['korean']}</small></div>", unsafe_allow_html=True)
-    
-    # 액션 버튼들
-    st.markdown("---")
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        if st.button("📊 상세 분석 보기", use_container_width=True, type="secondary"):
-            st.session_state.current_page = 'analytics'
-            st.rerun()
-    
-    with col2:
-        if st.button("🔄 다시 분석하기", use_container_width=True, type="primary"):
-            st.session_state.current_page = 'main'
-            if 'selected_emotion' in st.session_state:
-                del st.session_state.selected_emotion
-            if 'manual_score' in st.session_state:
-                del st.session_state.manual_score
-            st.query_params.clear()
-            st.rerun()
-    
-    with col3:
-        if st.button("📊 다른 감정 보기", use_container_width=True):
-            st.session_state.current_page = 'manual'
-            st.rerun()
-
-# === 메인 라우터 ===
-
-def main():
-    """메인 라우터 - 현재 페이지에 따라 적절한 함수 호출"""
-    
-    # 사이드바에 현재 상태 표시
-    with st.sidebar:
-        st.header("🔧 상태 정보")
-        st.write(f"**현재 페이지**: `{st.session_state.current_page}`")
-        
-        if 'selected_emotion' in st.session_state:
-            emotion = EMOTIONS[st.session_state.selected_emotion]
-            st.write(f"**선택된 감정**: {emotion['emoji']} {emotion['korean']}")
-        
-        # 웹캠 상태 표시
-        webcam_status = "🟢 실행중" if is_webcam_running() else "🔴 중지됨"
-        st.write(f"**웹캠 상태**: {webcam_status}")
-        
-        # 히스토리 상태
-        history_count = len(st.session_state.emotion_history)
-        st.write(f"**세션 히스토리**: {history_count}개")
-        
-        # 로컬 데이터 상태
-        local_count = len(load_local_emotion_history())
-        st.write(f"**로컬 데이터**: {local_count}개")
-        
-        # URL 데이터 상태
-        url_count = len(load_url_history_data())
-        if url_count > 0:
-            st.write(f"**URL 데이터**: {url_count}개")
-        
-        st.markdown("---")
-        
-        # 웹캠 강제 종료 버튼
-        if st.button("🛑 웹캠 강제 종료", type="secondary"):
-            if stop_webcam_process():
-                st.success("✅ 웹캠이 종료되었습니다.")
-                # 웹캠 종료 시 자동으로 대시보드로 이동
-                st.session_state.current_page = 'analytics'
-                st.rerun()
-        
-        st.markdown("---")
-
-        # 대시보드 바로가기 버튼 추가
-        if st.button("📊 분석 대시보드", use_container_width=True, type="primary"):
-            st.session_state.current_page = 'analytics'
-            st.rerun()
-
-        st.markdown("---")
-
-        # 히스토리 초기화 버튼
-        if st.session_state.emotion_history:
-            if st.button("🗑️ 세션 히스토리 초기화"):
-                st.session_state.emotion_history = []
-                st.success("✅ 세션 히스토리가 초기화되었습니다.")
-                st.rerun()
-        
-        st.markdown("---")
-    
-    # 현재 페이지에 따라 적절한 함수 호출
-    if st.session_state.current_page == 'main':
-        show_main_page()
-    elif st.session_state.current_page == 'manual':
-        show_manual_page()
-    elif st.session_state.current_page == 'analytics':
-        show_analytics_page()
-    elif st.session_state.current_page == 'result':
-        show_result_page()
-    else:
-        # 예상치 못한 페이지면 메인으로
-        st.session_state.current_page = 'main'
-        st.rerun()
-    
-    # 푸터
-
-    st.markdown("---")
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.caption("🎭 Made with Streamlit | 감정 분석 시스템 🚀")
-        # 프로그램 종료 버튼
-        st.subheader("⚠️ 시스템 제어")
-        if st.button("🛑 프로그램 완전 종료", use_container_width=True, type="secondary"):
-            st.session_state.confirm_shutdown = True
-            st.rerun()
-
-        # 확인 대화상자 (여기서는 버튼만, 함수 호출은 하지 않음)
-        if st.session_state.get('confirm_shutdown', False):
-            st.warning("⚠️ 프로그램을 종료하시겠습니까?")
-            c1, c2 = st.columns(2)
-            with c1:
-                if st.button("✅ 예, 종료", key="confirm_yes"):
-                    st.session_state.do_shutdown = True  # ← 플래그만 세움
-                    st.rerun()
-            with c2:
-                if st.button("❌ 아니오", key="confirm_no"):
-                    st.session_state.confirm_shutdown = False
-                    st.rerun()
-
-        # =========================
-        # 👇 반드시 컬럼 블록 '밖'에 둬야 함 (main() 맨 아래쪽이면 OK)
-        # 실제 종료 로직은 전역 레이아웃에서 호출 → 메시지 박스가 전체 폭
-        # =========================
-        if st.session_state.get('do_shutdown'):
-            # 플래그 정리(선택)
-            st.session_state.do_shutdown = False
-            st.session_state.confirm_shutdown = False
-            shutdown_app()  # ← 여기서 실행되면 success()/info()가 전체 너비로 렌더링됨
->>>>>>> f81054bf3e5cea299f28fc141e2bd08a1635d760
 
 
 # 앱 실행
