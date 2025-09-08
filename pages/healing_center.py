@@ -1121,7 +1121,7 @@ elif st.session_state.current_page == "sleep":
         wake_time = st.time_input("일어난 시간", value=datetime.strptime("07:00", "%H:%M").time())
 
     sleep_issues = st.multiselect("수면 방해 요소",
-                                  ["스트레스", "카페인", "스마트폰", "소음", "온도", "몸 불편", "걱정", "파도 소리가 그리워서", "없음"])
+                                  ["스트레스", "카페인", "스마트폰", "소음", "온도", "몸 불편", "걱정", "없음"])
     dream_note = st.text_area("기억나는 꿈 (선택사항)", height=80, placeholder="바다나 항해 관련 꿈을 꾸셨나요?")
 
     if st.button("🌙 수면 일지 저장", use_container_width=True):

@@ -727,18 +727,116 @@ def create_emotion_gauge(score, color):
     fig.update_layout(height=300, margin=dict(l=20, r=20, t=40, b=20))
     return fig
 
+# def create_enhanced_timeline_chart(history_data, minutes=30):
+#     """향상된 감정 변화 추이 차트"""
+#     if not history_data:
+#         return None
+        
+#     # 최근 N분간 데이터 필터링
+#     cutoff_time = datetime.now() - timedelta(minutes=minutes)
+#     recent_data = [h for h in history_data if h['timestamp'] > cutoff_time]
+    
+#     if len(recent_data) < 1:
+#         return None
+    
+#     # 데이터 준비
+#     df = pd.DataFrame([
+#         {
+#             'time': entry['timestamp'].strftime('%H:%M:%S'),
+#             'timestamp': entry['timestamp'],
+#             'emotion': EMOTIONS.get(entry['emotion'], {'korean': entry['emotion']})['korean'],
+#             'emotion_en': entry['emotion'],
+#             'score': entry['score'] * 100,
+#             'color': EMOTIONS.get(entry['emotion'], {'color': '#808080'})['color'],
+#             'emoji': EMOTIONS.get(entry['emotion'], {'emoji': '🤔'})['emoji']
+#         }
+#         for entry in recent_data
+#     ])
+    
+#     # 라인 차트 생성
+#     fig = go.Figure()
+    
+#     # 전체 감정 변화 라인
+#     fig.add_trace(go.Scatter(
+#         x=df['timestamp'],
+#         y=df['score'],
+#         mode='lines+markers',
+#         name='감정 변화',
+#         line=dict(color='#1f77b4', width=3),
+#         marker=dict(size=8),
+#         hovertemplate="<b>%{text}</b><br>" +
+#                      "시간: %{x|%H:%M:%S}<br>" +
+#                      "신뢰도: %{y:.1f}%<extra></extra>",
+#         text=[f"{row['emoji']} {row['emotion']}" for _, row in df.iterrows()]
+#     ))
+    
+#     # 감정별로 색상이 다른 점들 추가
+#     for emotion in df['emotion_en'].unique():
+#         emotion_data = df[df['emotion_en'] == emotion]
+#         if not emotion_data.empty:
+#             emotion_info = EMOTIONS.get(emotion, {'korean': emotion, 'color': '#808080', 'emoji': '🤔'})
+#             fig.add_trace(go.Scatter(
+#                 x=emotion_data['timestamp'],
+#                 y=emotion_data['score'],
+#                 mode='markers',
+#                 marker=dict(
+#                     size=15,
+#                     color=emotion_info['color'],
+#                     symbol='circle',
+#                     line=dict(width=2, color='white')
+#                 ),
+#                 name=f"{emotion_info['emoji']} {emotion_info['korean']}",
+#                 hovertemplate=f"<b>{emotion_info['emoji']} {emotion_info['korean']}</b><br>" +
+#                              "시간: %{x|%H:%M:%S}<br>" +
+#                              "신뢰도: %{y:.1f}%<extra></extra>",
+#                 showlegend=True
+#             ))
+    
+#     fig.update_layout(
+#         title=f"감정 변화 추이 (최근 {minutes}분)",
+#         xaxis_title="시간",
+#         yaxis_title="감정",
+#         height=500,
+#         margin=dict(l=20, r=20, t=60, b=20),
+#         hovermode='x unified',
+#         legend=dict(
+#             orientation="h",
+#             yanchor="bottom",
+#             y=1.02,
+#             xanchor="right",
+#             x=1
+#         ),
+#         yaxis=dict(range=[0, 100])
+#     )
+    
+#     return fig
+
+
 def create_enhanced_timeline_chart(history_data, minutes=30):
     """향상된 감정 변화 추이 차트"""
     if not history_data:
         return None
-        
+     
     # 최근 N분간 데이터 필터링
     cutoff_time = datetime.now() - timedelta(minutes=minutes)
     recent_data = [h for h in history_data if h['timestamp'] > cutoff_time]
-    
+     
     if len(recent_data) < 1:
         return None
+     
+    # 감정별 y축 위치 매핑 (감정을 숫자로 매핑)
+    emotion_positions = {}
+    emotion_labels = []
     
+    # 모든 감정들을 수집하고 정렬
+    all_emotions = list(set(entry['emotion'] for entry in recent_data))
+    all_emotions.sort()  # 알파벳 순으로 정렬
+    
+    for i, emotion in enumerate(all_emotions):
+        emotion_positions[emotion] = i
+        emotion_info = EMOTIONS.get(emotion, {'korean': emotion, 'emoji': '🤔'})
+        emotion_labels.append(f"{emotion_info['emoji']} {emotion_info['korean']}")
+     
     # 데이터 준비
     df = pd.DataFrame([
         {
@@ -746,30 +844,32 @@ def create_enhanced_timeline_chart(history_data, minutes=30):
             'timestamp': entry['timestamp'],
             'emotion': EMOTIONS.get(entry['emotion'], {'korean': entry['emotion']})['korean'],
             'emotion_en': entry['emotion'],
+            'y_position': emotion_positions[entry['emotion']],  # 감정별 y축 위치
             'score': entry['score'] * 100,
             'color': EMOTIONS.get(entry['emotion'], {'color': '#808080'})['color'],
             'emoji': EMOTIONS.get(entry['emotion'], {'emoji': '🤔'})['emoji']
         }
         for entry in recent_data
     ])
-    
+     
     # 라인 차트 생성
     fig = go.Figure()
-    
-    # 전체 감정 변화 라인
+     
+    # 전체 감정 변화 라인 (이제 y축이 감정 위치)
     fig.add_trace(go.Scatter(
         x=df['timestamp'],
-        y=df['score'],
+        y=df['y_position'],
         mode='lines+markers',
         name='감정 변화',
         line=dict(color='#1f77b4', width=3),
         marker=dict(size=8),
         hovertemplate="<b>%{text}</b><br>" +
                      "시간: %{x|%H:%M:%S}<br>" +
-                     "신뢰도: %{y:.1f}%<extra></extra>",
-        text=[f"{row['emoji']} {row['emotion']}" for _, row in df.iterrows()]
+                     "신뢰도: %{customdata:.1f}%<extra></extra>",
+        text=[f"{row['emoji']} {row['emotion']}" for _, row in df.iterrows()],
+        customdata=df['score']  # 신뢰도 정보를 customdata로 전달
     ))
-    
+     
     # 감정별로 색상이 다른 점들 추가
     for emotion in df['emotion_en'].unique():
         emotion_data = df[df['emotion_en'] == emotion]
@@ -777,7 +877,7 @@ def create_enhanced_timeline_chart(history_data, minutes=30):
             emotion_info = EMOTIONS.get(emotion, {'korean': emotion, 'color': '#808080', 'emoji': '🤔'})
             fig.add_trace(go.Scatter(
                 x=emotion_data['timestamp'],
-                y=emotion_data['score'],
+                y=emotion_data['y_position'],
                 mode='markers',
                 marker=dict(
                     size=15,
@@ -788,14 +888,15 @@ def create_enhanced_timeline_chart(history_data, minutes=30):
                 name=f"{emotion_info['emoji']} {emotion_info['korean']}",
                 hovertemplate=f"<b>{emotion_info['emoji']} {emotion_info['korean']}</b><br>" +
                              "시간: %{x|%H:%M:%S}<br>" +
-                             "신뢰도: %{y:.1f}%<extra></extra>",
+                             "신뢰도: %{customdata:.1f}%<extra></extra>",
+                customdata=emotion_data['score'],
                 showlegend=True
             ))
-    
+     
     fig.update_layout(
         title=f"감정 변화 추이 (최근 {minutes}분)",
         xaxis_title="시간",
-        yaxis_title="신뢰도 (%)",
+        yaxis_title="감정",
         height=500,
         margin=dict(l=20, r=20, t=60, b=20),
         hovermode='x unified',
@@ -806,10 +907,16 @@ def create_enhanced_timeline_chart(history_data, minutes=30):
             xanchor="right",
             x=1
         ),
-        yaxis=dict(range=[0, 100])
+        yaxis=dict(
+            tickmode='array',
+            tickvals=list(range(len(emotion_labels))),
+            ticktext=emotion_labels,
+            range=[-0.5, len(emotion_labels) - 0.5]  # 감정 라벨이 잘 보이도록 여백 추가
+        )
     )
-    
+     
     return fig
+
 
 def create_emotion_distribution_chart(history_data, minutes=30):
     """감정 분포 파이 차트"""
