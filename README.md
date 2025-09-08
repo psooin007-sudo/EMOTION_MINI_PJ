@@ -40,23 +40,18 @@ Data Visualization: pandas, plotly
 <br>
 
 🚀 시작하기 (Getting Started)
-1. 프로젝트 복제 (Clone)
-Bash
-
-git clone https://github.com/your-username/your-repository.git
-cd your-repository
-2. 필요 라이브러리 설치 (Installation)
+1. 필요 라이브러리 설치 (Installation)
 Bash
 
 pip install -r requirements.txt
-3. OpenAI API 키 설정
+2. OpenAI API 키 설정
 프로젝트 폴더 내에 .streamlit 폴더를 만들고, 그 안에 secrets.toml 파일을 생성하여 아래와 같이 OpenAI API 키를 입력해주세요.
 
 Ini, TOML
 
 # .streamlit/secrets.toml
 OPENAI_API_KEY = "sk-..."
-4. 앱 실행 (Run)
+3. 앱 실행 (Run)
 Bash
 
 streamlit run main.py
