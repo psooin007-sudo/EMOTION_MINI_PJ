@@ -44,17 +44,18 @@ Data Visualization: pandas, plotly
 Bash
 
 pip install -r requirements.txt
+
 2. OpenAI API 키 설정
 프로젝트 폴더 내에 .streamlit 폴더를 만들고, 그 안에 secrets.toml 파일을 생성하여 아래와 같이 OpenAI API 키를 입력해주세요.
 
 Ini, TOML
-
 # .streamlit/secrets.toml
 OPENAI_API_KEY = "sk-..."
+
 3. 앱 실행 (Run)
 Bash
-
 streamlit run main.py
+
 <br>
 
 🧭 앱 사용법 (How to Use)
